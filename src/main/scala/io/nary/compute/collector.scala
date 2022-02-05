@@ -11,7 +11,7 @@ object collector:
   val topic = "collected"
 
   val out = KafkaProducer.pipe[IO, String, String, Unit](ProducerSettings[IO, String, String]
-    .withBootstrapServers("localhost:9092"))
+    .withBootstrapServers(pipeline.connectTo))
 
   def runCollection : IO[ExitCode] =
     fs2.Stream.awakeEvery[IO](30.seconds).evalMap(_ =>

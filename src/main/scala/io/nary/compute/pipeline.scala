@@ -8,13 +8,12 @@ import scala.concurrent.duration.*
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object pipeline:
+  // TODO: we should bootstrap this from a config
   val connectTo = "localhost:9092"
   val groupId = "group"
 
   val consumerSettings = ConsumerSettings[IO, String, String]
-    .withAutoOffsetReset(AutoOffsetReset.Earliest)
-    .withBootstrapServers("localhost:9092")
-    .withGroupId("group")
+    .withAutoOffsetReset(AutoOffsetReset.Earliest).withBootstrapServers(connectTo).withGroupId(groupId)
 
   def processCollections : IO[ExitCode] =
     KafkaProducer.stream(ProducerSettings[IO, String, String].withBootstrapServers(connectTo))

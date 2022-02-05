@@ -17,4 +17,5 @@ object processor:
     ProducerSettings[IO, String, String].withBootstrapServers("localhost:9092")
   )
 
-  def apply(record: ProducerRecord[String, String]) : ProducerRecord[String, String] = record
+  def apply(record: ProducerRecord[String, String]) : ProducerRecord[String, String] =
+    ProducerRecord(record.topic, s"proc-${record.key}", s"proc-${record.value}")

@@ -1,5 +1,6 @@
-@main def hello: Unit = 
-  println("Hello world!")
-  println(msg)
+import io.nary.compute.*
+import cats.effect.unsafe.implicits._
 
-def msg = "I was compiled by Scala 3. :)"
+// TODO: This is only to be intended as a simple pipeline executor for demonstration purposes
+// in a production deployment we would want to use IO.unsafeRunAsync() for better safety
+@main def runPipeline: Unit = pipeline.run.unsafeRunSync() 
