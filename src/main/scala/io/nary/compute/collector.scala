@@ -14,10 +14,10 @@ object collector:
     .withBootstrapServers(pipeline.connectTo))
 
   def runCollection : IO[ExitCode] =
-    fs2.Stream.awakeEvery[IO](30.seconds).evalMap(_ =>
+    fs2.Stream.awakeEvery[IO](3.seconds).evalMap(_ =>
       IO(collectData)).through[IO, ProducerResult[Unit, String, String]](out)
         .compile.drain.as(ExitCode.Success)
-  
-  def collectData : ProducerRecords[Unit, String, String] = 
-    ProducerRecords.one(ProducerRecord(topic, "test", "foo")) 
+
+  def collectData : ProducerRecords[Unit, String, String] =
+    ProducerRecords.one(ProducerRecord(topic, "abc", "123"))
 
