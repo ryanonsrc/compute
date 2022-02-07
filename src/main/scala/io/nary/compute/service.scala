@@ -10,6 +10,8 @@ import org.http4s.server.Router
 
 import scala.concurrent.ExecutionContext.global
 
+// TODO: This is a simple service just to see items as they are collected and processed.  Ideally, we'd want
+// to output in a more usable format like JSON, support filtering/pagination of results etc but once again: its a POC
 object service:
   val http = HttpRoutes.of[IO] {
     case request@GET -> Root / "status" => Ok("Okay.")
