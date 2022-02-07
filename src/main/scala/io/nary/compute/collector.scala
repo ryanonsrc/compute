@@ -14,10 +14,9 @@ object collector:
     .withBootstrapServers(pipeline.connectTo))
 
   def runCollection : IO[ExitCode] =
-    fs2.Stream.awakeEvery[IO](3.seconds).evalMap(_ =>
-      IO(collectData)).through[IO, ProducerResult[Unit, String, String]](out)
-        .compile.drain.as(ExitCode.Success)
+    fs2.Stream.awakeEvery[IO](3.seconds).flatMap(_ => collectAllData)
+      .through[IO, ProducerResult[Unit, String, String]](out).compile.drain.as(ExitCode.Success)
 
-  def collectData : ProducerRecords[Unit, String, String] =
-    ProducerRecords.one(ProducerRecord(topic, "abc", "123"))
-
+  def collectAllData : Stream[IO, ProducerRecords[Unit, String, String]] =
+    Stream.evalSeq[IO, List, ProducerRecords[Unit, String, String]](
+      adapters.readAll.map(_.map { case (k, v) => ProducerRecords.one(ProducerRecord(topic, k, v))}))

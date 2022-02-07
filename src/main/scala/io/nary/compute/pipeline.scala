@@ -21,7 +21,7 @@ object pipeline:
   def processAndCache(original: ProducerRecord[String, String]) : ProducerRecord[String, String] = {
     val proc = processor(original)
     collectedCache.addLast(original.key -> original.value)
-    processedCache.addLast(proc.key -> proc.key)
+    processedCache.addLast(proc.key -> proc.value)
     proc
   }
 

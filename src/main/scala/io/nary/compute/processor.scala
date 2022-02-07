@@ -17,5 +17,9 @@ object processor:
     ProducerSettings[IO, String, String].withBootstrapServers("localhost:9092")
   )
 
-  def apply(record: ProducerRecord[String, String]) : ProducerRecord[String, String] =
-    ProducerRecord(record.topic, s"proc-${record.key}", s"proc-${record.value}")
+  def apply(record: ProducerRecord[String, String]) : ProducerRecord[String, String] = {
+    val (computedKey, computedValue) = adapters.resolveAndCompute(record.key, record.value).kvPair
+    ProducerRecord(record.topic, computedKey, computedValue)
+  }
+
+
