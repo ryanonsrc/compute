@@ -16,17 +16,18 @@ package object adapters:
 
   abstract case class SampleLabeledInt(label: String, number: Int) extends Computable(SampleNumericDataAdapter)
   abstract case class SampleLabeledText(label: String, text: String) extends Computable(SampleTextualDataAdapter)
+  abstract case class ChemicalCompoundSynonyms(commonName: String, synonym: String) extends Computable(PubChemAdapter)
   abstract case class DataError(p: Prefix, error: String) extends Resolved
   case class Unknown(key: String, value: String) extends StoredAs(s"$key.unknown" -> s"$value.unknown")
   case class ComputationResult(key: String, value: String) extends StoredAs(key -> value)
 
-  type Data = SampleLabeledInt | SampleLabeledText | ComputationResult | DataError | Unknown
+  type Data = SampleLabeledInt | SampleLabeledText | ChemicalCompoundSynonyms | ComputationResult | DataError | Unknown
 
   trait Adapter:
     def read: IO[List[(String, String)]]
     def compute(d: Data with Resolved) : ComputationResult | Unknown
 
-  val sources : List[Adapter] = List(SampleNumericDataAdapter, SampleTextualDataAdapter)
+  val sources : List[Adapter] = List(PubChemAdapter)
 
   def resolve(key: String, value: String) : Data with Resolved = key.split('.').toList match
     case prefix :: meta :: Nil if meta == "number" =>
@@ -34,6 +35,8 @@ package object adapters:
         .getOrElse(new DataError(prefix, "Data with meta == 'number' contains non-integer.") with StoredAs(key -> value))
     case prefix :: meta :: Nil if meta == "text" =>
       new SampleLabeledText(prefix, value) with StoredAs(key -> value)
+    case prefix :: meta :: Nil if meta == "compound" =>
+      new ChemicalCompoundSynonyms(prefix, value) with StoredAs(key -> value)
     case _ => Unknown(key, value)
 
   def readAll : IO[List[(String, String)]] = sources.foldLeft(IO(List.empty[(String, String)])){ case (iol, adapter) =>

@@ -13,6 +13,7 @@ information and placing into a destination kafka topic
 * Cats Effect 3
 * fs2/kafka
 * Http4s (for checking the contents of both kafka topics)
+* sttp (for making http requests to ChemPub)
 
 ### Possible future expansions
 
