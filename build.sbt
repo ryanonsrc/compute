@@ -5,6 +5,10 @@ val catsEffectVersion = "3.3.5"
 val http4sVersion = "0.23.10"
 val sttpVersion = "3.4.1"
 
+Compile / PB.targets := Seq(
+  scalapb.gen() -> (Compile / sourceManaged).value / "scalapb"
+)
+
 lazy val root = project
   .in(file("."))
   .settings(
@@ -20,6 +24,8 @@ lazy val root = project
       "org.http4s" %% "http4s-dsl" % http4sVersion,
       "org.http4s" %% "http4s-blaze-server" % http4sVersion,
       "com.softwaremill.sttp.client3" %% "core" % sttpVersion,
-      "org.http4s" %% "http4s-circe" % http4sVersion
+      "org.http4s" %% "http4s-circe" % http4sVersion,
+      "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf",
+      "com.thesamet.scalapb" %% "scalapb-runtime-grpc" % scalapb.compiler.Version.scalapbVersion
     )
   )

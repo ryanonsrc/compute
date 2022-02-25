@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package io.nary.compute.proto;
+
+message Processed {
+  string key = 1;
+  string value = 2;
+}
+
+service Sender {
+  rpc send(Empty) returns (ManyProcessed) {}
+}
+
+message ManyProcessed {
+  repeated Processed manyProcessed = 1;
+}
+
+message Empty {}
