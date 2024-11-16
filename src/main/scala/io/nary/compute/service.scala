@@ -2,7 +2,6 @@ package io.nary.compute
 
 import cats.effect.*
 import cats.syntax.all.*
-import io.nary.compute.proto.processed.{ManyProcessed, Processed}
 import org.http4s.*
 import org.http4s.dsl.io.*
 import org.http4s.implicits.*
@@ -15,14 +14,11 @@ object service:
   val http = HttpRoutes.of[IO] {
     case request@GET -> Root / "status" => Ok("Okay.")
 
-    case request@GET -> Root / "cache" / "collections" / "json" =>
+    case request@GET -> Root / "cache" / "collections" =>
       Ok(pipeline.collectedCache.toArray.mkString("\n"))
 
-    case request@GET -> Root / "cache" / "processed" / "json" =>
+    case request@GET -> Root / "cache" / "processed" =>
       Ok(pipeline.processedCache.toArray.mkString("\n"))
-
-    case request@GET -> Root / "cache" / "processed" / "msgs" =>
-      Ok(processedMessages)
 
     case unknown => NotFound()
   }
@@ -32,7 +28,3 @@ object service:
     .withHttpApp(http.orNotFound)
     .withExecutionContext(global)
     .serve.compile.drain.as(ExitCode.Success)
-
-  def processedMessages : Array[Byte] =
-    ManyProcessed(pipeline.processedCache.toArray.toSeq.map {
-      case (k, v) => Processed(k.toString, v.toString)}).toByteArray
