@@ -6,7 +6,7 @@ import sttp.model.Uri
 
 import scala.util.Random
 
-object PubChemAdapter extends Adapter:
+object PeriodicTableAdapter extends Adapter:
   def read: IO[List[(String, String)]] =
     for {
       backend <- IO(HttpURLConnectionBackend())
