@@ -1,17 +1,24 @@
-import cats.effect.{ExitCode, IO}
+import cats.effect.{ExitCode, IO, IOApp}
+import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 import io.nary.compute.*
-import cats.effect.unsafe.implicits.*
+import cats.effect.kernel.Resource
+import cats.syntax.parallel._
 
-// TODO: This is only to be intended as a simple pipeline executor for demonstration purposes
-// in a production deployment we would want to use IO.unsafeRunAsync() for better safety (in addition to adding
-// some error handling/logging, better scaling when handling large numbers of adapters, etc.
-@main def main: Unit = IO.parSequenceN(3)(
-  collector.runCollection ::
-  pipeline.processCollections ::
-  service.run :: Nil
-).map(reduceExitCode).unsafeRunSync()
+object MainApp extends IOApp:
+  given Logger[IO] = Slf4jLogger.getLogger[IO]
+  def run(args: List[String]): IO[ExitCode] =
+    (for
+      _ <- Resource.eval(Logger[IO].info(s"Starting Pipeline ..."))
+      results <- List(
+        Resource.eval(collector.runCollection),
+        Resource.eval(pipeline.processCollections),
+        service.run
+      ).parSequence // run the collector, process and service in parallel (separate threads)
+    yield reduceExitCode(results)).use(IO.pure)
 
-def reduceExitCode(l: List[ExitCode]) : ExitCode =
-  l.forall(_ == ExitCode.Success) match
-    case true => ExitCode.Success
-    case false => ExitCode.Error
+def reduceExitCode(l: List[ExitCode]): ExitCode =
+  if l.forall(_ == ExitCode.Success) then
+    ExitCode.Success
+  else
+    ExitCode.Error

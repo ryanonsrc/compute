@@ -1,8 +1,10 @@
-val scala3Version = "3.1.1"
+val scala3Version = "3.2.1"
 
 val fs2KafkaVersion = "3.0.0-M4"
 val catsEffectVersion = "3.3.5"
 val http4sVersion = "0.23.10"
+val log4catsVersion = "2.6.0"
+val logbackVersion = "1.4.14"
 val sttpVersion = "3.4.1"
 
 lazy val root = project
@@ -20,6 +22,8 @@ lazy val root = project
       "org.http4s" %% "http4s-dsl" % http4sVersion,
       "org.http4s" %% "http4s-blaze-server" % http4sVersion,
       "com.softwaremill.sttp.client3" %% "core" % sttpVersion,
-      "org.http4s" %% "http4s-circe" % http4sVersion
+      "org.http4s" %% "http4s-circe" % http4sVersion,
+      "org.typelevel" %% "log4cats-slf4j" % log4catsVersion,
+      "ch.qos.logback" % "logback-classic" % logbackVersion % Runtime,
     )
   )
