@@ -27,7 +27,7 @@ package object adapters:
     def read: IO[List[(String, String)]]
     def compute(d: Data with Resolved) : ComputationResult | Unknown
 
-  val sources : List[Adapter] = List(PubChemAdapter)
+  private val sources : List[Adapter] = List(PubChemAdapter)
 
   def resolve(key: String, value: String) : Data with Resolved = key.split('.').toList match
     case prefix :: meta :: Nil if meta == "number" =>

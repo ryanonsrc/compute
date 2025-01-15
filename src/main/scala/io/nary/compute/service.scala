@@ -7,24 +7,37 @@ import org.http4s.dsl.io.*
 import org.http4s.implicits.*
 import org.http4s.blaze.server.*
 import org.http4s.server.Router
-
-import scala.concurrent.ExecutionContext.global
+import scala.concurrent.duration.*
 
 object service:
+  // blocking thread pool fixed at for threads, makes sense for sync. endpoints.
+  private def blockingPool = Resource.make(
+    IO.delay(java.util.concurrent.Executors.newFixedThreadPool(4))
+  )(pool => IO.delay(pool.shutdown()))
+
   val http = HttpRoutes.of[IO] {
-    case request@GET -> Root / "status" => Ok("Okay.")
+    case GET -> Root / "status" =>
+      Ok("Okay.")
 
-    case request@GET -> Root / "cache" / "collections" =>
-      Ok(pipeline.collectedCache.toArray.mkString("\n"))
+    case GET -> Root / "cache" / "collections" => // GET collected source data from adapters
+      IO.blocking(pipeline.collectedCache.toArray.mkString("\n")).flatMap(Ok(_))
 
-    case request@GET -> Root / "cache" / "processed" =>
-      Ok(pipeline.processedCache.toArray.mkString("\n"))
+    case GET -> Root / "cache" / "processed" =>   // GET processed data (where computations have occurred)
+      IO.blocking(pipeline.processedCache.toArray.mkString("\n")).flatMap(Ok(_))
 
     case unknown => NotFound()
   }
 
-  def run = BlazeServerBuilder[IO]
-    .bindHttp(8080, "localhost")
-    .withHttpApp(http.orNotFound)
-    .withExecutionContext(global)
-    .serve.compile.drain.as(ExitCode.Success)
+  def run =
+    blockingPool.flatMap { pool =>
+      Resource.eval(
+        BlazeServerBuilder[IO]
+          .bindHttp(8080, "localhost")
+          .withHttpApp(http.orNotFound)
+          .withIdleTimeout(60.seconds)
+          .withResponseHeaderTimeout(30.seconds)
+          .withExecutionContext(
+            scala.concurrent.ExecutionContext.fromExecutor(pool)
+          ).serve.compile.drain.as(ExitCode.Success)
+      )
+    }
