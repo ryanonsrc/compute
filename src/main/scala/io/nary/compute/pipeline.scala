@@ -18,13 +18,13 @@ object pipeline:
   val collectedCache = new ConcurrentLinkedDeque[(String, String)]()
   val processedCache = new ConcurrentLinkedDeque[(String, String)]()
 
-  def processAndCache(original: ProducerRecord[String, String]) : Option[ProducerRecord[String, String]] = 
+  def processAndCache(original: ProducerRecord[String, String]) : Option[ProducerRecord[String, String]] =
     processor(original) match {
-      case Some(proc) => 
+      case Some(proc) =>
         collectedCache.addLast(original.key -> original.value)
         processedCache.addLast(proc.key -> proc.value)
         Some(proc)
-      case None => None  
+      case None => None
     }
 
   def collectionConsumer : Stream[IO, KafkaConsumer[IO, String, String]] =
@@ -36,7 +36,7 @@ object pipeline:
     KafkaProducer.stream(ProducerSettings[IO, String, String].withBootstrapServers(connectTo))
       .flatMap { producer =>
         collectionConsumer.records.flatMap { committable =>
-          processAndCache(ProducerRecord(processor.topic, 
+          processAndCache(ProducerRecord(processor.topic,
             committable.record.key, committable.record.value)) match {
               case None => Stream.empty
               case Some(record) => Stream.emit(ProducerRecords.one(record, committable.offset))

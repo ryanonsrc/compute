@@ -40,10 +40,10 @@ package object adapters:
     case _ => Unknown(key, value)
 
   def readAll : IO[List[(String, String)]] = sources.foldLeft(IO(List.empty[(String, String)])){ case (iol, adapter) =>
-    for {
+    for
       all <- iol
       kvlist <- adapter.read
-    } yield all ++ kvlist
+    yield all ++ kvlist
   }
 
   def resolveAndCompute(key: String, value: String) : ComputationResult | Unknown = resolve(key, value) match
